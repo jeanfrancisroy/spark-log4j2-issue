@@ -1,4 +1,5 @@
 # Sample Spark + Log4j2 Configuration Issue Project
+
 This project aims at demonstrating issues we face while trying to re-configure log4j2 from a properties file containing plug-ins present in a shaded or fat jar.
 
 We demonstrate that:
@@ -12,49 +13,49 @@ Moreover, with older Spark versions and Log4j1, we could configure appenders com
 To make sure the issue does not come from Maven Shade plug-in only (that requires a transformer to fix log4j2 plug-ins),
 we also provide the same example using Spring Boot.
 
-## Example with Spring Boot
+## Build packages
 
-First, package the shaded jar:
 ```commandline:
-mvn clean package -Pspring
+mvn clean package
 ```
+
+## Example with Spring Boot
 
 When running with `java -jar` directly, the appender can be added, both by re-configuring log4j with a properties file
 present in resources, or by running code that programmatically adds the appender.
+
 ```commandline:
-java -jar target/sample_2.12-1.0.0.jar 
-java -jar target/sample_2.12-1.0.0.jar --reconfigure
-java -jar target/sample_2.12-1.0.0.jar --add-appender
+java -jar target/sample_2.12-spring.jar 
+java -jar target/sample_2.12-spring.jar --reconfigure
+java -jar target/sample_2.12-spring.jar --add-appender
 ```
 
 When running with `spark-submit`, both commands will fail.
+
 ```commandline:
-spark-submit target/sample_2.12-1.0.0.jar 
-spark-submit target/sample_2.12-1.0.0.jar --reconfigure
-spark-submit target/sample_2.12-1.0.0.jar --add-appender
+spark-submit target/sample_2.12-spring.jar 
+spark-submit target/sample_2.12-spring.jar --reconfigure
+spark-submit target/sample_2.12-spring.jar --add-appender
 ```
 
 
 ## Example with Maven Shade
 
-First, package the shaded jar:
-```commandline:
-mvn clean package -Pshade
-```
 
 When running with `java -cp` directly, the appender can be added, both by re-configuring log4j with a properties file
 present in resources, or by running code that programmatically adds the appender.
+
 ```commandline:
-java -cp target/sample_2.12-1.0.0-shaded.jar sample.Main
-java -cp target/sample_2.12-1.0.0-shaded.jar sample.Main --reconfigure
-java -cp target/sample_2.12-1.0.0-shaded.jar sample.Main --add-appender
+java -cp target/sample_2.12-shaded.jar sample.Main
+java -cp target/sample_2.12-shaded.jar sample.Main --reconfigure
+java -cp target/sample_2.12-shaded.jar sample.Main --add-appender
 ```
 
 When running with `spark-submit`, both commands will fail.
 ```commandline:
-spark-submit --class sample.Main target/sample_2.12-1.0.0-shaded.jar
-spark-submit --class sample.Main target/sample_2.12-1.0.0-shaded.jar --reconfigure
-spark-submit --class sample.Main target/sample_2.12-1.0.0-shaded.jar --add-appender
+spark-submit --class sample.Main target/sample_2.12-shaded.jar
+spark-submit --class sample.Main target/sample_2.12-shaded.jar --reconfigure
+spark-submit --class sample.Main target/sample_2.12-shaded.jar --add-appender
 ```
 
 ## Workaround: provide plug-in jar(s) to the Spark cluster and add them to the driver classpath
@@ -66,23 +67,26 @@ applications running on it.
 Here, we show the example using Maven Shade only.
 
 First, get all log4j2 plug-in jars into a `jars` folder (in this example there is only one, but in practice we'd have more)
+
 ```
 log4j-layout-template-json-2.19.0.jar
 ```
 
 Then, run:
+
 ```commandline:
 spark-submit \
   --driver-class-path $(ls -xm jars/* | tr -d "[:space:]" | tr -s ',' ':') \
   --class sample.Main \
-  target/sample_2.12-1.0.0-shaded.jar \
+  target/sample_2.12-shaded.jar \
   --reconfigure
 ```
 
 ## Appendix: it's not only Spark's classpath that is the culprit
+
 ```commandline:
 java \
-  -cp "$(ls -xm $SPARK_HOME/jars/* | tr -d "[:space:]" | tr -s ',' ':'):target/sample_2.12-1.0.0-shaded.jar" \
+  -cp "$(ls -xm $SPARK_HOME/jars/* | tr -d "[:space:]" | tr -s ',' ':'):target/sample_2.12-shaded.jar" \
   sample.Main \
   --reconfigure
 ```
