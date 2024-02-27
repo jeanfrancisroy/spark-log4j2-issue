@@ -69,7 +69,7 @@ Here, we show the example using Maven Shade only.
 First, get all log4j2 plug-in jars into a `jars` folder (in this example there is only one, but in practice we'd have more)
 
 ```
-log4j-layout-template-json-2.19.0.jar
+log4j-layout-template-json-2.20.0.jar
 ```
 
 Then, run:
